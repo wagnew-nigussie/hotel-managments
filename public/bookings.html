@@ -14,7 +14,12 @@
       <form id="booking-form">
         <h3>Create New Booking</h3>
         <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-          <div class="form-group"><label>Room</label><select id="room-select" required></select></div>
+          <div class="form-group">
+            <label>Room</label>
+            <select id="room-select" required>
+              <option value=""> Select Room </option>
+            </select>
+          </div>
           <div class="form-group"><label>Guest Full Name</label><input type="text" id="guest-name" required></div>
           <div class="form-group"><label>Phone Number</label><input type="text" id="phone" required></div>
           <div class="form-group"><label>ID / Passport Number</label><input type="text" id="id-number" required></div>
@@ -26,7 +31,16 @@
 
       <h3>Existing Bookings</h3>
       <table>
-        <thead><tr><th>ID</th><th>Room</th><th>Guest</th><th>Check-In</th><th>Check-Out</th><th>Status</th></tr></thead>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Room</th>
+            <th>Guest</th>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+            <th>Status</th>
+          </tr>
+        </thead>
         <tbody id="bookings-table"></tbody>
       </table>
     </div>
@@ -37,26 +51,37 @@
     setupSidebar('bookings');
 
     async function init() {
-      const roomRes = await fetch('/api/rooms');
-      const rooms = await roomRes.json();
-      document.getElementById('room-select').innerHTML = rooms.map(r => `<option value="${r.id}">Room ${r.room_number} - ${r.type} ($${r.price_per_night})</option>`).join('');
+      try {
+        const roomRes = await fetch('/api/rooms');
+        const rooms = await roomRes.json();
 
-      loadBookings();
+        const roomSelect = document.getElementById('room-select');
+        roomSelect.innerHTML = '<option value="">Select Room </option>' +
+          rooms.map(r => `<option value="${r.id}">Room ${r.room_number} - ${r.type} ($${r.price_per_night})</option>`).join('');
+
+        loadBookings();
+      } catch (error) {
+        console.error('Error loading rooms:', error);
+      }
     }
 
     async function loadBookings() {
-      const res = await fetch('/api/bookings');
-      const bookings = await res.json();
-      document.getElementById('bookings-table').innerHTML = bookings.map(b => `
-        <tr>
-          <td>#${b.id}</td>
-          <td>Room ${b.room_number}</td>
-          <td>${b.guest_name}</td>
-          <td>${b.check_in_date}</td>
-          <td>${b.check_out_date}</td>
-          <td><span class="badge badge-${b.status === 'checked-in' ? 'occupied' : 'clean'}">${b.status}</span></td>
-        </tr>
-      `).join('');
+      try {
+        const res = await fetch('/api/bookings');
+        const bookings = await res.json();
+        document.getElementById('bookings-table').innerHTML = bookings.map(b => `
+          <tr>
+            <td>#${b.id}</td>
+            <td>Room ${b.room_number}</td>
+            <td>${b.guest_name}</td>
+            <td>${b.check_in_date}</td>
+            <td>${b.check_out_date}</td>
+            <td><span class="badge badge-${b.status === 'checked-in' ? 'occupied' : 'clean'}">${b.status}</span></td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading bookings:', error);
+      }
     }
 
     document.getElementById('booking-form').addEventListener('submit', async (e) => {
