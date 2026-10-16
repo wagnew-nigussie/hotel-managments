@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Check-In / Out - Hotel Management</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <header><h1>Check-In & Check-Out Operations</h1></header>
+    <div class="container">
+      <div id="alert-box" class="alert"></div>
+      <table>
+        <thead><tr><th>Booking ID</th><th>Room</th><th>Guest</th><th>Check-In</th><th>Check-Out</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="ops-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    checkAuth();
+    setupSidebar('checkin');
+
+    async function loadBookings() {
+      const res = await fetch('/api/bookings');
+      const bookings = await res.json();
+      document.getElementById('ops-table').innerHTML = bookings.map(b => `
+        <tr>
+          <td>#${b.id}</td>
+          <td>Room ${b.room_number}</td>
+          <td>${b.guest_name}</td>
+          <td>${b.check_in_date}</td>
+          <td>${b.check_out_date}</td>
+          <td><span class="badge">${b.status}</span></td>
+          <td>
+            ${b.status === 'booked' ? `<button class="btn" onclick="checkIn(${b.id})">Check In</button>` : ''}
+            ${b.status === 'checked-in' ? `<button class="btn" style="background:var(--danger);" onclick="checkOut(${b.id})">Check Out</button>` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function checkIn(id) {
+      const res = await fetch(`/api/bookings/${id}/checkin`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) { showAlert(data.message, 'success'); loadBookings(); } else { showAlert(data.error, 'error'); }
+    }
+
+    async function checkOut(id) {
+      const res = await fetch(`/api/bookings/${id}/checkout`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) { showAlert(data.message, 'success'); loadBookings(); } else { showAlert(data.error, 'error'); }
+    }
+
+    loadBookings();
+  </script>
+</body>
+</html>

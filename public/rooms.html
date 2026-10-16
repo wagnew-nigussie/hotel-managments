@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rooms - Hotel Management</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <header><h1>Rooms Management (30 Rooms)</h1></header>
+    <div class="container">
+      <div id="alert-box" class="alert"></div>
+      <table>
+        <thead><tr><th>Room #</th><th>Type</th><th>Floor</th><th>Price/Night</th><th>Amenities</th><th>Status</th></tr></thead>
+        <tbody id="rooms-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    checkAuth();
+    setupSidebar('rooms');
+
+    async function loadRooms() {
+      const res = await fetch('/api/rooms');
+      const rooms = await res.json();
+      document.getElementById('rooms-table').innerHTML = rooms.map(r => `
+        <tr>
+          <td><b>${r.room_number}</b></td>
+          <td>${r.type}</td>
+          <td>Floor ${r.floor}</td>
+          <td>$${r.price_per_night}</td>
+          <td>${r.amenities}</td>
+          <td><span class="badge badge-${r.status}">${r.status}</span></td>
+        </tr>
+      `).join('');
+    }
+    loadRooms();
+  </script>
+</body>
+</html>

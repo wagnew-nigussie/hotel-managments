@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Housekeeping - Hotel Management</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <header><h1>Housekeeping Room Status</h1></header>
+    <div class="container">
+      <div id="alert-box" class="alert"></div>
+      <table>
+        <thead><tr><th>Room #</th><th>Type</th><th>Current Status</th><th>Actions</th></tr></thead>
+        <tbody id="housekeeping-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    checkAuth();
+    setupSidebar('housekeeping');
+
+    async function loadRooms() {
+      const res = await fetch('/api/rooms');
+      const rooms = await res.json();
+      document.getElementById('housekeeping-table').innerHTML = rooms.map(r => `
+        <tr>
+          <td><b>Room ${r.room_number}</b></td>
+          <td>${r.type}</td>
+          <td><span class="badge badge-${r.status}">${r.status}</span></td>
+          <td>
+            <button class="btn" style="background:var(--success)" onclick="setStatus(${r.id}, 'clean')">Mark Clean</button>
+            <button class="btn" style="background:var(--warning); color:#000;" onclick="setStatus(${r.id}, 'dirty')">Mark Dirty</button>
+            <button class="btn" style="background:var(--gray)" onclick="setStatus(${r.id}, 'maintenance')">Maintenance</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function setStatus(id, status) {
+      const res = await fetch(`/api/rooms/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      const data = await res.json();
+      if (res.ok) { showAlert(data.message, 'success'); loadRooms(); } else { showAlert(data.error, 'error'); }
+    }
+
+    loadRooms();
+  </script>
+</body>
+</html>

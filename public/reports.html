@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reports - Hotel Management</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <header><h1>Financial & Occupancy Reports</h1></header>
+    <div class="container" id="report-container"></div>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    checkAuth();
+    setupSidebar('reports');
+
+    async function loadReports() {
+      const res = await fetch('/api/reports');
+      if (!res.ok) {
+        document.getElementById('report-container').innerHTML = '<p style="color:var(--danger)">Access Denied: Admin role required.</p>';
+        return;
+      }
+      const data = await res.json();
+      document.getElementById('report-container').innerHTML = `
+        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+          <div style="background:white; padding:20px; border-radius:8px;">
+            <h3>Occupancy Status</h3>
+            <p>Total Rooms: <b>${data.totalRooms}</b></p>
+            <p>Currently Occupied: <b>${data.occupiedRooms}</b></p>
+            <p>Occupancy Rate: <b>${data.occupancyRate}%</b></p>
+          </div>
+          <div style="background:white; padding:20px; border-radius:8px;">
+            <h3>Revenue Summary</h3>
+            <p>Today's Revenue: <b style="color:var(--success)">$${data.dailyRevenue.toFixed(2)}</b></p>
+            <p>Monthly Revenue: <b style="color:var(--primary-blue)">$${data.monthlyRevenue.toFixed(2)}</b></p>
+          </div>
+        </div>
+      `;
+    }
+    loadReports();
+  </script>
+</body>
+</html>
